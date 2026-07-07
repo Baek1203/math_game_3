@@ -18,6 +18,12 @@ const firebaseConfig = {
   messagingSenderId: "748954569516",
   appId: "1:748954569516:web:c474da7f087530f39b7a89"
 };
+
+/* Firestore 데이터베이스 ID.
+   (default) 가 아닌 이름 있는 데이터베이스를 만들었다면 그 ID를 여기 적어주세요.
+   기본 (default) 데이터베이스를 쓴다면 '(default)' 그대로 두면 됩니다. */
+const FIRESTORE_DATABASE_ID = "math-game-1";
+
 let _fbReady = false;
 let db = null;
 
@@ -29,7 +35,10 @@ function initFirebase(){
       return false;
     }
     firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
+    // 두 번째 인자로 데이터베이스 ID를 지정해야 (default)가 아닌 named database에 연결됩니다.
+    db = (FIRESTORE_DATABASE_ID && FIRESTORE_DATABASE_ID !== '(default)')
+      ? firebase.firestore(firebase.app(), FIRESTORE_DATABASE_ID)
+      : firebase.firestore();
     _fbReady = true;
     return true;
   }catch(e){
@@ -67,23 +76,44 @@ function requirePlayerNameOrRedirect(){
    3) 점수 저장 / 랭킹 조회
    게임별로 컬렉션을 분리해서 복합 색인(composite index) 없이 바로 동작합니다.
    gameId 는 'game1' 또는 'game2' 를 사용합니다.
+
+   ★ 플레이어 이름을 문서 ID로 사용합니다 (같은 이름 = 같은 플레이어).
+     새 점수가 기존에 저장된 최고 점수보다 높을 때만 문서를 갱신하므로,
+     랭킹에는 항상 각 플레이어의 "최고 기록"만 남습니다.
 ------------------------------------------------------------ */
 function scoreCollection(gameId){
   if(!_fbReady && !initFirebase()) return null;
   return db.collection('scores_' + gameId);
 }
 
+function safeDocId(name){
+  // Firestore 문서 ID에 쓸 수 없는 문자를 정리하고 길이를 제한한다
+  const cleaned = (name || '익명').trim().replace(/[\/]/g, '_').slice(0, 20);
+  return cleaned || '익명';
+}
+
 async function saveScore(gameId, name, score, extra){
   const col = scoreCollection(gameId);
   if(!col) return { ok:false, error:'firebase-not-ready' };
+  const safeName = safeDocId(name);
+  const newScore = Math.round(score) || 0;
+  const ref = col.doc(safeName);
   try{
-    await col.add({
-      name: (name || '익명').slice(0, 20),
-      score: Math.round(score) || 0,
-      extra: extra || {},
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    const outcome = await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const prevScore = snap.exists ? (snap.data().score || 0) : -Infinity;
+      if(newScore > prevScore){
+        tx.set(ref, {
+          name: safeName,
+          score: newScore,
+          extra: extra || {},
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        return { updated:true, best:newScore };
+      }
+      return { updated:false, best:prevScore };
     });
-    return { ok:true };
+    return { ok:true, updated:outcome.updated, best:outcome.best };
   }catch(e){
     console.error('saveScore 실패:', e);
     return { ok:false, error:e.message };

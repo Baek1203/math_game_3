@@ -453,6 +453,7 @@
       <div class="stat"><div class="n" id="finalFever">0</div><div class="l">피버 발동</div></div>
     </div>
     <button class="bigBtn" id="btnRestart">다시하기</button>
+    <div id="bestNote" style="font-size:12.5px;color:var(--ink-soft);"></div>
     <div class="rankBox" id="rankBoxEnd">
       <h4>🏆 이쪽저쪽 랭킹 TOP 10</h4>
       <div id="rankListEnd"><div class="rankLoading">불러오는 중...</div></div>
@@ -502,6 +503,7 @@
     rankListStart:document.getElementById('rankListStart'),
     rankBoxEnd:document.getElementById('rankBoxEnd'),
     rankListEnd:document.getElementById('rankListEnd'),
+    bestNote:document.getElementById('bestNote'),
   };
 
   let state = {};
@@ -845,7 +847,14 @@
     els.endOverlay.classList.remove('hidden');
 
     els.rankListEnd.innerHTML = '<div class="rankLoading">기록 저장 중...</div>';
-    saveScore(GAME_ID, playerName, state.score, { maxCombo: state.maxCombo, accuracy: acc }).finally(()=>{
+    els.bestNote.textContent = '';
+    saveScore(GAME_ID, playerName, state.score, { maxCombo: state.maxCombo, accuracy: acc }).then(res=>{
+      if(res.ok){
+        els.bestNote.textContent = res.updated
+          ? '🎉 개인 최고 기록을 경신했어요!'
+          : `이번 기록의 개인 최고 점수는 ${res.best}점이에요.`;
+      }
+    }).finally(()=>{
       loadRanking(els.rankListEnd, playerName, state.score);
     });
   }
