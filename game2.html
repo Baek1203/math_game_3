@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>수 카드 미션: 목표를 잡아라!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Baloo+2:wght@500;700;800&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<style>
+  :root{
+    --sky-top:#8FD3F0;
+    --sky-bottom:#EAF7FF;
+    --grass:#8FCB6B;
+    --grass-dark:#6EAE4E;
+    --path:#F3E3A8;
+    --path-dark:#E7CD86;
+    --banner:#FFC468;
+    --banner-dark:#F0932B;
+    --ink:#6B4A2C;
+    --ink-soft:#9C8264;
+    --irr:#C6A6FF;
+    --irr-dark:#9A6BEA;
+    --irr-ink:#5B3B9E;
+    --rat:#8FEAD1;
+    --rat-dark:#45C9A6;
+    --rat-ink:#1F7F68;
+    --op:#FFB0A3;
+    --op-dark:#F0715E;
+    --op-ink:#9E3B2B;
+    --br1:#9AD1F0; --br1-dark:#4FA9DD; --br1-ink:#155F8C;
+    --br2:#F5C4E6; --br2-dark:#E17FC4; --br2-ink:#8C2E70;
+    --br3:#FFE08A; --br3-dark:#F0B429; --br3-ink:#8C6400;
+    --white:#FFFFFF;
+    --bad:#E5484D;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%;
+    -webkit-tap-highlight-color:transparent; user-select:none;
+    font-family:'Gowun Dodum', sans-serif; color:var(--ink);
+    overflow:hidden;
+  }
+  body{
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(circle at 18% 15%, rgba(143,211,240,0.35), transparent 55%),
+      radial-gradient(circle at 85% 12%, rgba(255,196,104,0.30), transparent 50%),
+      radial-gradient(circle at 50% 95%, rgba(143,203,107,0.32), transparent 55%),
+      linear-gradient(160deg, #2B2F3A 0%, #1B1E27 100%);
+  }
+  #app{
+    position:relative; width:100%; height:100vh;
+    display:flex; flex-direction:column;
+    background:var(--path);
+    overflow:hidden;
+  }
+  #frameChrome{ display:none; }
+  #frameTitle{ display:none; }
+  /* Windowed card look on roomy desktop/laptop viewports */
+  @media (min-width:860px) and (min-height:640px){
+    body{ padding:28px; }
+    #app{
+      width:min(940px, 94vw); height:min(860px, 92vh);
+      border-radius:20px;
+      box-shadow:0 30px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.5);
+      padding-top:36px;
+    }
+    #frameChrome{
+      display:flex; align-items:center; gap:6px;
+      position:absolute; top:13px; left:16px; z-index:61;
+    }
+    #frameChrome span{ width:10px; height:10px; border-radius:50%; display:block; }
+    #frameChrome span:nth-child(1){ background:#FF5F57; }
+    #frameChrome span:nth-child(2){ background:#FEBC2E; }
+    #frameChrome span:nth-child(3){ background:#28C840; }
+    #frameTitle{
+      display:block; position:absolute; top:9px; left:50%; transform:translateX(-50%);
+      font-family:'Jua',sans-serif; font-size:12.5px; color:var(--ink-soft); z-index:61;
+      letter-spacing:0.5px;
+    }
+    /* on desktop, overlays should center within the app window, not the whole browser */
+    .overlay{ position:absolute !important; }
+  }
+
+  #layoutRow{ position:relative; flex:1; min-height:0; display:flex; flex-direction:column; }
+  @media (min-width:860px) and (min-height:640px){
+    #layoutRow{ flex-direction:row; }
+  }
+
+  #scrollArea{
+    position:relative; flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;
+    background:linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 220px, var(--path) 221px, var(--path) 100%);
+    -webkit-overflow-scrolling:touch;
+  }
+
+  #foundSidebar{
+    position:relative; flex-shrink:0;
+    background:linear-gradient(to bottom, var(--grass) 0%, var(--grass-dark) 100%);
+    padding:12px 12px 14px;
+    display:flex; flex-direction:column; gap:8px;
+    max-height:220px; overflow-y:auto;
+  }
+  @media (min-width:860px) and (min-height:640px){
+    #foundSidebar{ width:250px; max-height:none; overflow-y:auto; border-left:4px solid rgba(107,74,44,0.15); }
+  }
+  #foundSidebar h3{ margin:0; font-family:'Jua',sans-serif; font-size:13px; color:#fff; text-shadow:0 1px 0 rgba(0,0,0,0.15); }
+  #foundList{ display:flex; flex-direction:column; gap:6px; }
+  .foundItem{
+    background:#fff; border-radius:10px; padding:6px 9px; box-shadow:0 3px 0 rgba(107,74,44,0.18);
+    font-size:13px; display:flex; align-items:center; gap:6px;
+  }
+  .foundItem .num{ font-family:'Jua',sans-serif; font-size:11px; color:var(--rat-ink); background:var(--rat); border-radius:8px; padding:1px 6px; flex-shrink:0; }
+  .foundItem .expr{ overflow-x:auto; }
+  #foundEmpty{ color:#fff; font-size:12px; opacity:0.85; }
+
+  .cloud{ position:absolute; background:#fff; border-radius:50%; opacity:0.85; filter:blur(0.5px); pointer-events:none; }
+  .cloud::before, .cloud::after{ content:''; position:absolute; background:#fff; border-radius:50%; }
+  #c1{ width:60px; height:28px; top:14px; left:6%; }
+  #c1::before{ width:34px; height:34px; top:-14px; left:6px; }
+  #c1::after{ width:24px; height:24px; top:-8px; left:30px; }
+  #c2{ width:76px; height:32px; top:10px; right:5%; }
+  #c2::before{ width:38px; height:38px; top:-15px; left:12px; }
+  #c2::after{ width:28px; height:28px; top:-8px; left:40px; }
+
+  #titleRow{ position:relative; z-index:2; text-align:center; padding:14px 10px 2px; }
+  #titleRow h1{ font-family:'Jua',sans-serif; font-size:22px; color:var(--ink); margin:0; text-shadow:0 2px 0 rgba(255,255,255,0.6); }
+  #titleRow .sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+
+  #hud{
+    position:relative; z-index:2;
+    display:flex; justify-content:center; flex-wrap:wrap;
+    padding:8px 10px 2px; gap:8px;
+  }
+  .pill{
+    background:var(--white); border-radius:20px; padding:6px 12px;
+    box-shadow:0 4px 0 rgba(107,74,44,0.18);
+    display:flex; align-items:center; gap:5px;
+    font-family:'Jua', sans-serif; font-size:12.5px; color:var(--ink);
+    white-space:nowrap;
+  }
+  .pill .n{ font-family:'Baloo 2', sans-serif; font-size:16px; font-weight:700; color:var(--banner-dark); }
+  .pill.timer .n{ font-size:17px; }
+  .pill.timer.low .n{ color:var(--bad); animation:beat 0.6s infinite; }
+  @keyframes beat{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.18);} }
+
+  #targetPanel{
+    position:relative; z-index:2; margin:8px 14px 0; padding:10px 14px 12px;
+    background:var(--white); border-radius:18px;
+    box-shadow:0 5px 0 rgba(107,74,44,0.18);
+    text-align:center;
+  }
+  #targetPanel .lbl{ font-family:'Jua',sans-serif; font-size:12px; color:var(--banner-dark); letter-spacing:1px; }
+  #targetBox{ font-size:1.7em; margin-top:2px; color:var(--ink); font-family:'Baloo 2',sans-serif; }
+  #targetBox .katex{ font-size:1em; }
+
+  #mainArea{ position:relative; z-index:2; padding:10px 14px 14px; display:flex; flex-direction:column; gap:10px; }
+
+  #trayWrap{
+    background:linear-gradient(to bottom, var(--path) 0%, var(--path-dark) 100%);
+    border-radius:14px; box-shadow:inset 0 0 0 4px rgba(255,255,255,0.35), 0 4px 0 rgba(107,74,44,0.2);
+    padding:10px 10px 8px; min-height:70px;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px;
+    position:relative;
+  }
+  #trayWrap.dragover{ box-shadow:inset 0 0 0 4px rgba(255,255,255,0.35), 0 0 0 3px var(--banner-dark), 0 4px 0 rgba(107,74,44,0.2); }
+  #trayLabel{ position:absolute; top:-9px; left:12px; font-family:'Jua',sans-serif; font-size:11px; color:#fff;
+    background:linear-gradient(180deg, var(--banner) 0%, var(--banner-dark) 100%); padding:3px 10px; border-radius:10px;
+    box-shadow:0 2px 0 #C9701A; }
+  #trayPlaceholder{ font-size:13px; color:var(--ink-soft); }
+  .exprTok{
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:17px; color:var(--ink);
+    background:#fff; border-radius:10px; padding:4px 9px; box-shadow:0 3px 0 rgba(107,74,44,0.18);
+    cursor:default;
+  }
+  .exprTok.opTok{ background:var(--op); color:var(--op-ink); }
+  .exprTok.brTok1{ background:var(--br1); color:var(--br1-ink); }
+  .exprTok.brTok2{ background:var(--br2); color:var(--br2-ink); }
+  .exprTok.brTok3{ background:var(--br3); color:var(--br3-ink); }
+
+  #ctrlRow{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .smallBtn{
+    font-family:'Jua',sans-serif; font-size:12.5px; color:var(--ink); background:#fff;
+    border:none; border-radius:14px; padding:8px 12px; box-shadow:0 3px 0 rgba(107,74,44,0.2); cursor:pointer;
+  }
+  .smallBtn:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(107,74,44,0.2); }
+  .smallBtn:disabled{ opacity:0.4; cursor:default; }
+  #btnSubmit{
+    font-family:'Jua',sans-serif; font-size:15px; color:#fff; letter-spacing:1px;
+    background:linear-gradient(180deg, #FFD166, var(--banner-dark)); border:none; border-radius:16px;
+    padding:9px 20px; box-shadow:0 4px 0 #C9701A; cursor:pointer;
+  }
+  #btnSubmit:active{ transform:translateY(3px); box-shadow:0 1px 0 #C9701A; }
+  #btnSubmit:disabled{ opacity:0.4; cursor:default; }
+  #btnHint{ background:var(--irr); color:var(--irr-ink); }
+
+  .paletteSection{ }
+  .paletteHead{ font-family:'Jua',sans-serif; font-size:12.5px; color:var(--ink-soft); margin:0 2px 5px; display:flex; align-items:center; gap:6px; }
+  .paletteHead .hintText{ font-size:10.5px; color:var(--ink-soft); font-family:'Gowun Dodum',sans-serif; }
+  #numGrid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
+  @media (min-width:860px) and (min-height:640px){ #numGrid{ grid-template-columns:repeat(5, 1fr); } }
+  @media (max-width:360px){ #numGrid{ grid-template-columns:repeat(3,1fr); } }
+  .card{
+    aspect-ratio:1/1; border-radius:13px; background:var(--white);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:22px; color:var(--ink);
+    box-shadow:0 4px 0 rgba(107,74,44,0.22), 0 2px 6px rgba(0,0,0,0.10);
+    cursor:pointer; transition:transform .12s ease, opacity .12s ease, filter .12s ease; padding:2px;
+  }
+  .card .katex{ font-size:1.18em; }
+  .card:active{ transform:translateY(2px); }
+  .card.used, .card.disabled{ opacity:0.32; filter:grayscale(0.5); cursor:default; box-shadow:0 2px 0 rgba(107,74,44,0.15); }
+  .card.used:active, .card.disabled:active{ transform:none; }
+
+  #opRow, #brRow{ display:flex; gap:9px; flex-wrap:wrap; }
+  .opCard{
+    width:66px; height:56px; border-radius:14px; background:linear-gradient(180deg, var(--op) 0%, var(--op-dark) 100%);
+    color:#fff; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:28px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 4px 0 #B84B39; cursor:pointer;
+  }
+  .opCard:active{ transform:translateY(2px); box-shadow:0 2px 0 #B84B39; }
+  .opCard.disabled{ opacity:0.35; cursor:default; filter:grayscale(0.4); }
+  .opCard.disabled:active{ transform:none; }
+
+  .brCard{
+    min-width:58px; height:56px; padding:0 16px; border-radius:14px; color:#fff;
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:26px;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer;
+  }
+  .brCard:active{ transform:translateY(2px); }
+  .brCard.disabled{ opacity:0.3; cursor:default; filter:grayscale(0.4); }
+  .brCard.disabled:active{ transform:none; }
+  .brCard.d1{ background:linear-gradient(180deg, var(--br1) 0%, var(--br1-dark) 100%); box-shadow:0 4px 0 #2E7CA8; }
+  .brCard.d1:active{ box-shadow:0 2px 0 #2E7CA8; }
+  .brCard.d2{ background:linear-gradient(180deg, var(--br2) 0%, var(--br2-dark) 100%); box-shadow:0 4px 0 #A84A87; }
+  .brCard.d2:active{ box-shadow:0 2px 0 #A84A87; }
+  .brCard.d3{ background:linear-gradient(180deg, var(--br3) 0%, var(--br3-dark) 100%); box-shadow:0 4px 0 #B8850F; }
+  .brCard.d3:active{ box-shadow:0 2px 0 #B8850F; }
+
+  #feedbackMsg{ text-align:center; font-size:13px; min-height:18px; color:var(--ink-soft); font-family:'Jua',sans-serif; }
+  #feedbackMsg.good{ color:var(--rat-ink); }
+  #feedbackMsg.bad{ color:var(--bad); }
+
+  #hintBox{ text-align:center; font-size:12.5px; color:var(--irr-ink); background:#F4ECFF; border-radius:12px; padding:6px 10px; }
+  #hintBox.hidden{ display:none; }
+
+  /* judge / flash effects (viewport-anchored, works the same on mobile & desktop) */
+  #judgeFlash{ position:fixed; inset:0; z-index:70; pointer-events:none; opacity:0; }
+  #judgeFlash.correct{ animation: flashCorrect 0.42s ease-out; }
+  #judgeFlash.wrong{ animation: flashWrong 0.42s ease-out; }
+  @keyframes flashCorrect{ 0%{ opacity:1; background:radial-gradient(ellipse at center, rgba(69,201,166,0.45) 0%, rgba(69,201,166,0.0) 70%);} 100%{opacity:0;} }
+  @keyframes flashWrong{ 0%{opacity:1; background:rgba(229,72,77,0.32);} 100%{opacity:0; background:rgba(229,72,77,0.0);} }
+  #app.shake{ animation: shakeApp 0.36s ease; }
+  @keyframes shakeApp{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-7px);} 40%{transform:translateX(6px);} 60%{transform:translateX(-4px);} 80%{transform:translateX(3px);} }
+  .judgeMark{
+    position:fixed; top:30%; left:50%; transform:translate(-50%,-50%) scale(0.4);
+    z-index:71; pointer-events:none; opacity:0; font-family:'Jua',sans-serif; font-size:30px; white-space:nowrap;
+  }
+  .judgeMark.go{ animation: judgePop 0.6s cubic-bezier(.34,1.7,.64,1) forwards; }
+  .judgeMark.good{ color:var(--rat-ink); text-shadow:0 3px 0 #fff, 0 0 18px rgba(69,201,166,0.7); }
+  .judgeMark.bad{ color:var(--bad); text-shadow:0 3px 0 #fff, 0 0 14px rgba(229,72,77,0.55); }
+  @keyframes judgePop{
+    0%{ opacity:0; transform:translate(-50%,-40%) scale(0.3) rotate(-6deg); }
+    25%{ opacity:1; transform:translate(-50%,-52%) scale(1.25) rotate(4deg); }
+    50%{ transform:translate(-50%,-50%) scale(1.05) rotate(0deg); }
+    80%{ opacity:1; }
+    100%{ opacity:0; transform:translate(-50%,-65%) scale(0.95); }
+  }
+  .confetti{ position:fixed; width:9px; height:9px; border-radius:3px; top:30%; left:50%; pointer-events:none; z-index:69; opacity:0; }
+  .confetti.go{ animation: confettiFly 0.9s ease-out forwards; }
+  @keyframes confettiFly{ 0%{opacity:1; transform:translate(0,0) rotate(0);} 100%{opacity:0; transform:translate(var(--dx),var(--dy)) rotate(var(--rot));} }
+
+  /* overlays */
+  .overlay{
+    position:fixed; inset:0; z-index:60; background:rgba(60,50,35,0.22); backdrop-filter:blur(2px);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .overlayPanel{
+    background:#FFFDF8; border-radius:24px; padding:22px 24px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.6);
+    display:flex; flex-direction:column; align-items:center; gap:12px;
+    text-align:center; max-width:400px; max-height:calc(100% - 20px); overflow-y:auto;
+  }
+  .ribbon{ position:relative; margin-bottom:4px; }
+  .ribbonMain{
+    background:linear-gradient(180deg, var(--banner) 0%, var(--banner-dark) 100%);
+    padding:14px 26px; border-radius:20px; font-family:'Jua',sans-serif; font-size:21px; color:#fff;
+    text-shadow:0 2px 0 rgba(0,0,0,0.15); box-shadow:0 6px 0 #C9701A; position:relative; z-index:2;
+  }
+  .ribbon::before, .ribbon::after{ content:''; position:absolute; top:8px; bottom:8px; width:26px; background:var(--banner-dark); z-index:1; border-radius:6px; }
+  .ribbon::before{ left:-12px; transform:skewY(18deg); }
+  .ribbon::after{ right:-12px; transform:skewY(-18deg); }
+  .overlay p{ margin:0; max-width:340px; font-size:14.5px; line-height:1.7; color:var(--ink); }
+  .rule-row{ display:flex; gap:9px; margin:2px 0; flex-wrap:wrap; justify-content:center; max-width:360px; }
+  .rule-chip{ font-family:'Jua',sans-serif; font-size:11.5px; padding:8px 11px; border-radius:14px; color:var(--ink); background:#fff; box-shadow:0 3px 0 rgba(107,74,44,0.18); }
+  .rule-chip b{ display:block; font-family:'Baloo 2',sans-serif; font-size:15px; color:var(--banner-dark); }
+  .bigBtn{ margin-top:6px; padding:13px 36px; border:none; border-radius:24px; background:linear-gradient(180deg, #FFD166, var(--banner-dark)); color:#fff; font-family:'Jua',sans-serif; font-size:18px; letter-spacing:1px; cursor:pointer; box-shadow:0 6px 0 #C9701A; }
+  .bigBtn:active{ transform:translateY(3px); box-shadow:0 3px 0 #C9701A; }
+  #playerNameInput{
+    width:100%; max-width:260px; padding:11px 16px; border-radius:20px; border:2px solid var(--banner);
+    background:#fff; color:var(--ink); font-family:'Gowun Dodum',sans-serif; font-size:14.5px; text-align:center;
+    box-shadow:inset 0 2px 4px rgba(107,74,44,0.08); outline:none;
+  }
+  #playerNameInput:focus{ border-color:var(--banner-dark); box-shadow:inset 0 2px 4px rgba(107,74,44,0.08), 0 0 0 3px rgba(240,147,43,0.25); }
+  #playerNameInput::placeholder{ color:var(--ink-soft); }
+  #resultStats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:360px; }
+  .stat{ background:#fff; border-radius:16px; padding:9px 13px; min-width:76px; box-shadow:0 4px 0 rgba(107,74,44,0.18); }
+  .stat .n{ font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700; color:var(--banner-dark); }
+  .stat .l{ font-size:10.5px; color:var(--ink-soft); margin-top:2px; font-family:'Jua',sans-serif; }
+  #roundTable{ width:100%; max-width:360px; background:#fff; border-radius:14px; padding:8px 12px; box-shadow:0 4px 0 rgba(107,74,44,0.18); font-size:12px; }
+  #roundTable table{ width:100%; border-collapse:collapse; }
+  #roundTable td{ padding:3px 4px; text-align:center; }
+  #roundTable tr:first-child td{ font-family:'Jua',sans-serif; color:var(--ink-soft); font-size:11px; }
+
+  /* ---------- BACK BUTTON ---------- */
+  #btnBack{
+    position:absolute; top:10px; left:10px; z-index:70;
+    width:34px; height:34px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.85); color:var(--ink); font-size:16px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 0 rgba(107,74,44,0.25);
+  }
+  #btnBack:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(107,74,44,0.25); }
+  @media (min-width:860px) and (min-height:640px){
+    #btnBack{ top:44px; left:14px; }
+  }
+
+  /* ---------- RANKING ---------- */
+  #btnRanking{
+    margin-top:2px; padding:9px 22px; border:none; border-radius:20px; cursor:pointer;
+    font-family:'Jua',sans-serif; font-size:13.5px; color:var(--ink);
+    background:#fff; box-shadow:0 3px 0 rgba(107,74,44,0.18);
+  }
+  #btnRanking:active{ transform:translateY(2px); box-shadow:0 1px 0 rgba(107,74,44,0.18); }
+  .rankBox{ width:100%; max-width:300px; background:rgba(255,255,255,0.7); border-radius:16px; padding:12px 14px; margin:6px auto 0; }
+  .rankBox h4{ margin:0 0 8px; font-family:'Jua',sans-serif; font-size:14px; color:var(--banner-dark); text-align:center; }
+  .rankList{ list-style:none; margin:0; padding:0; max-height:220px; overflow-y:auto; text-align:left; }
+  .rankList li{ display:flex; align-items:center; gap:8px; padding:6px 4px; font-size:13.5px; border-bottom:1px solid rgba(107,74,44,0.08); }
+  .rankList li.me{ background:rgba(255,196,104,0.35); border-radius:8px; }
+  .rankList .rk{ width:20px; font-family:'Baloo 2',sans-serif; font-weight:700; color:var(--banner-dark); flex-shrink:0; }
+  .rankList .rn{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rankList .rs{ font-family:'Baloo 2',sans-serif; font-weight:700; color:var(--rat-ink); flex-shrink:0; }
+  .rankEmpty{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:10px 0; }
+  .rankLoading{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:10px 0; }
+  #greetLine{ font-family:'Jua',sans-serif; font-size:14px; color:var(--ink); margin:2px 0 4px; }
+  #greetLine b{ color:var(--banner-dark); }
+  #autoNote{ font-size:12px; color:var(--ink-soft); }
+  #autoNote b{ color:var(--banner-dark); font-family:'Baloo 2',sans-serif; }
+
+  button.pill{ font:inherit; border:none; cursor:pointer; }
+  button.pill:active{ transform:translateY(2px); }
+
+  #ruleList{ text-align:left; max-width:380px; background:#FBE9BE; border-radius:14px; padding:14px 18px; font-size:13.5px; line-height:1.8; color:#4A331A; box-shadow:inset 0 0 0 1px rgba(107,74,44,0.12); }
+  #ruleList ul{ margin:4px 0; padding-left:18px; }
+  #ruleList b{ color:var(--banner-dark); }
+
+  .hidden{ display:none !important; }
+</style>
+</head>
+<body>
+<div id="app">
+  <button id="btnBack" title="메인으로">◀</button>
+  <div id="frameChrome"><span></span><span></span><span></span></div>
+  <div id="frameTitle">수 카드 미션: 목표를 잡아라!</div>
+
+  <div id="layoutRow">
+    <div id="scrollArea">
+      <div class="cloud" id="c1"></div>
+      <div class="cloud" id="c2"></div>
+
+      <div id="titleRow">
+        <h1>🎯 수 카드 미션: 목표를 잡아라!</h1>
+        <div class="sub">수 카드로 목표 숫자를 잡아라!</div>
+      </div>
+
+      <div id="hud">
+        <div class="pill">🚩 라운드 <span class="n" id="roundVal">1</span>/<span id="roundTotal">5</span></div>
+        <div class="pill">⭐ <span class="n" id="scoreVal">0</span></div>
+        <div class="pill timer" id="timerPill">⏰ <span class="n" id="timerVal">90</span>초</div>
+        <div class="pill">🎯 찾은 답 <span class="n" id="foundVal">0</span></div>
+        <button class="pill" id="btnRules">❓ 규칙</button>
+      </div>
+
+      <div id="targetPanel">
+        <div class="lbl">목표 숫자</div>
+        <div id="targetBox"></div>
+      </div>
+
+      <div id="mainArea">
+        <div id="trayWrap">
+          <span id="trayLabel">내가 만든 식</span>
+          <span id="trayPlaceholder">카드를 눌러(또는 끌어다) 식을 만들어보세요</span>
+        </div>
+
+        <div id="ctrlRow">
+          <button class="smallBtn" id="btnUndo">↩ 되돌리기</button>
+          <button class="smallBtn" id="btnClear">🗑 전체 지우기</button>
+          <button id="btnSubmit">✔ 확인</button>
+          <button class="smallBtn" id="btnHint">💡 힌트</button>
+          <button class="smallBtn" id="btnEndRound">🏁 라운드 종료</button>
+        </div>
+
+        <div id="feedbackMsg"></div>
+        <div id="hintBox" class="hidden"></div>
+
+        <div class="paletteSection">
+          <div class="paletteHead">🔢 수 카드</div>
+          <div id="numGrid"></div>
+        </div>
+
+        <div class="paletteSection">
+          <div class="paletteHead">➕ 사칙연산 카드</div>
+          <div id="opRow"></div>
+        </div>
+
+        <div class="paletteSection">
+          <div class="paletteHead">( 괄호 카드 <span class="hintText">— ( ) → { } → [ ] 순서로 안쪽부터 사용해요</span></div>
+          <div id="brRow"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="foundSidebar">
+      <h3>🎯 이번 라운드에서 찾은 식</h3>
+      <div id="foundEmpty">아직 찾은 답이 없어요</div>
+      <div id="foundList"></div>
+    </div>
+  </div>
+
+  <!-- START OVERLAY -->
+  <div class="overlay" id="startOverlay">
+    <div class="overlayPanel">
+      <div class="ribbon"><div class="ribbonMain">수 카드 미션</div></div>
+      <p>정수, 유리수, 근호로 나타낸 무리수 카드와 연산·괄호 카드를 조합해서 <b style="color:var(--banner-dark)">목표 숫자</b>를 만들어보세요! 총 <b>5라운드</b>, 라운드가 오를수록 점점 어려워져요. 다 찾았다 싶으면 <b>라운드 종료</b> 버튼으로 시간을 아껴서 점수를 더 받을 수 있어요.</p>
+      <div class="rule-row">
+        <div class="rule-chip"><b>다양성</b>여러 가지 답 찾기</div>
+        <div class="rule-chip"><b>정확도</b>실수 없이 계산하기</div>
+        <div class="rule-chip"><b>속도</b>남은 시간이 많을수록 유리</div>
+      </div>
+      <div id="greetLine"></div>
+      <button class="bigBtn" id="btnStart">시작하기</button>
+      <button class="smallBtn" id="btnShowRules">❓ 게임 규칙</button>
+      <button id="btnRanking">🏆 랭킹 보기</button>
+      <div class="rankBox hidden" id="rankBoxStart">
+        <h4>🏆 수 카드 미션 랭킹 TOP 10</h4>
+        <div id="rankListStart"><div class="rankLoading">불러오는 중...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RULES OVERLAY -->
+  <div class="overlay hidden" id="rulesOverlay">
+    <div class="overlayPanel">
+      <div class="ribbon"><div class="ribbonMain">게임 규칙</div></div>
+      <div id="ruleList">
+        <b>① 식 만들기</b>
+        <ul>
+          <li>수 카드, 연산 카드(+,−,×,÷), 괄호 카드를 눌러(또는 끌어다) 목표 숫자를 만드는 식을 완성하세요.</li>
+          <li>괄호는 안쪽부터 <b>( ) → { } → [ ]</b> 순서로만 사용할 수 있어요.</li>
+          <li>수 카드는 한 번 쓰면 식을 지울 때까지 다시 쓸 수 없어요.</li>
+        </ul>
+        <b>② 점수 계산 (라운드당)</b>
+        <ul>
+          <li><b>다양성 점수</b>: 서로 다른 정답 식을 찾을 때마다 (첫 정답 100점, 새 정답마다 25점씩 추가)</li>
+          <li><b>정확도 보너스</b>: 제출한 것 중 정답 비율 (최대 100점)</li>
+          <li><b>시간 보너스</b>: 라운드가 끝날 때 남아있는 시간 비율 (최대 100점)</li>
+        </ul>
+        <b>③ 시간 보너스 팁</b>
+        <ul>
+          <li>더 찾을 답이 없다고 생각되면 시간이 남았을 때 <b>🏁 라운드 종료</b> 버튼을 눌러보세요. 남은 시간이 많을수록 보너스 점수가 커져요!</li>
+          <li>힌트를 사용하면 점수에서 30점이 깎여요.</li>
+        </ul>
+      </div>
+      <button class="bigBtn" id="btnCloseRules">닫기</button>
+    </div>
+  </div>
+
+  <!-- ROUND END OVERLAY -->
+  <div class="overlay hidden" id="roundEndOverlay">
+    <div class="overlayPanel">
+      <div class="ribbon"><div class="ribbonMain" id="roundEndTitle">시간 종료!</div></div>
+      <div id="resultStats">
+        <div class="stat"><div class="n" id="reFound">0</div><div class="l">찾은 답</div></div>
+        <div class="stat"><div class="n" id="reAcc">0%</div><div class="l">정확도</div></div>
+        <div class="stat"><div class="n" id="reTimeBonus">0</div><div class="l">시간 보너스</div></div>
+        <div class="stat"><div class="n" id="reRoundScore">0</div><div class="l">라운드 점수</div></div>
+      </div>
+      <button class="bigBtn" id="btnNextRound">다음 라운드</button>
+      <div id="autoNote"><b id="autoSecs">4</b>초 후 자동으로 진행돼요</div>
+    </div>
+  </div>
+
+  <!-- FINAL OVERLAY -->
+  <div class="overlay hidden" id="finalOverlay">
+    <div class="overlayPanel">
+      <div class="ribbon"><div class="ribbonMain">미션 완료!</div></div>
+      <div id="finalGreeting" style="font-family:'Jua',sans-serif; font-size:13px; color:var(--ink-soft);"></div>
+      <div id="resultStats">
+        <div class="stat"><div class="n" id="finalTotalScore">0</div><div class="l">총점</div></div>
+      </div>
+      <div id="roundTable"></div>
+      <button class="bigBtn" id="btnRestart">다시 도전하기</button>
+      <div class="rankBox" id="rankBoxEnd">
+        <h4>🏆 수 카드 미션 랭킹 TOP 10</h4>
+        <div id="rankListEnd"><div class="rankLoading">불러오는 중...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="judgeFlash"></div>
+  <div class="judgeMark" id="judgeMark"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+(function(){
+  const GAME_ID = 'game2';
+  const HOME_PLAYER_NAME = requirePlayerNameOrRedirect();
+  if(!HOME_PLAYER_NAME) return; // 이름이 없으면 index.html 로 이동 중
+  /* ============================================================
+     1. SYMBOLIC MATH ENGINE
+     A "value" is a canonical array of terms: {n,d,base}
+     representing sum of (n/d) * sqrt(base). base=1 => rational term.
+     ============================================================ */
+  function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+  function reduceFrac(n,d){
+    if(d<0){ n=-n; d=-d; }
+    if(n===0) return {n:0,d:1};
+    const g=gcd(n,d);
+    return {n:n/g, d:d/g};
+  }
+  function simplifySqrtInt(x){
+    for(let i=Math.floor(Math.sqrt(x)); i>=1; i--){
+      if(x % (i*i) === 0) return {mult:i, base:x/(i*i)};
+    }
+    return {mult:1, base:x};
+  }
+  function canon(terms){
+    const map = new Map();
+    for(const t of terms){
+      if(t.n===0) continue;
+      if(!map.has(t.base)) map.set(t.base, {n:0,d:1});
+      const cur = map.get(t.base);
+      const num = cur.n*t.d + t.n*cur.d;
+      const den = cur.d*t.d;
+      map.set(t.base, reduceFrac(num,den));
+    }
+    const out=[];
+    for(const [base,frac] of map.entries()) if(frac.n!==0) out.push({n:frac.n,d:frac.d,base});
+    out.sort((a,b)=>a.base-b.base);
+    return out;
+  }
+  function I(v){ return v===0? [] : canon([{n:v,d:1,base:1}]); }
+  function F(n,d){ return canon([{n,d,base:1}]); }
+  function S(coeff, radicand){
+    if(radicand===1) return canon([{n:coeff,d:1,base:1}]);
+    const {mult,base} = simplifySqrtInt(radicand);
+    return canon([{n:coeff*mult, d:1, base}]);
+  }
+  function add(A,B){ return canon([...A,...B]); }
+  function neg(A){ return A.map(t=>({n:-t.n,d:t.d,base:t.base})); }
+  function sub(A,B){ return add(A,neg(B)); }
+  function mul(A,B){
+    const out=[];
+    for(const ta of A) for(const tb of B){
+      const num = ta.n*tb.n, den = ta.d*tb.d;
+      const {mult,base} = simplifySqrtInt(ta.base*tb.base);
+      const r = reduceFrac(num*mult, den);
+      out.push({n:r.n,d:r.d,base});
+    }
+    return canon(out);
+  }
+  function reciprocalSingleTerm(t){
+    if(t.n===0) return null;
+    if(t.base===1){ const r=reduceFrac(t.d,t.n); return canon([{n:r.n,d:r.d,base:1}]); }
+    const r = reduceFrac(t.d, t.n*t.base);
+    return canon([{n:r.n,d:r.d,base:t.base}]);
+  }
+  function div(A,B){
+    if(B.length===0) throw new Error('div-zero');
+    if(B.length===1){
+      const recip = reciprocalSingleTerm(B[0]);
+      if(!recip) throw new Error('div-zero');
+      return mul(A,recip);
+    }
+    if(B.length===2){
+      const rat = B.find(t=>t.base===1), irr = B.find(t=>t.base!==1);
+      if(rat && irr){
+        const conj = [{n:rat.n,d:rat.d,base:1},{n:-irr.n,d:irr.d,base:irr.base}];
+        const denom = mul(B, conj);
+        if(denom.length>1) throw new Error('div-unsupported');
+        const denomTerm = denom.length===0? {n:0,d:1,base:1} : denom[0];
+        if(denomTerm.n===0) throw new Error('div-zero');
+        const recipDenom = reciprocalSingleTerm(denomTerm);
+        return mul(mul(A,conj), recipDenom);
+      }
+      throw new Error('div-unsupported');
+    }
+    throw new Error('div-unsupported');
+  }
+  function termsEqual(A,B){
+    const ca=canon(A), cb=canon(B);
+    if(ca.length!==cb.length) return false;
+    for(let i=0;i<ca.length;i++){
+      if(ca[i].base!==cb[i].base || ca[i].n!==cb[i].n || ca[i].d!==cb[i].d) return false;
+    }
+    return true;
+  }
+
+  /* ============================================================
+     2. ROUND DATA
+     ============================================================ */
+  let uidCounter = 0;
+  function CARD(tex, terms){ uidCounter++; return {id:'c'+uidCounter, tex, terms}; }
+
+  const ROUNDS = [
+    { timeLimit:70, targetTex:'24', target: I(24), hintTex:'4 \\times 6 = 24',
+      cards: [
+        CARD('2', I(2)), CARD('3', I(3)), CARD('4', I(4)), CARD('5', I(5)), CARD('6', I(6)),
+        CARD('7', I(7)), CARD('8', I(8)), CARD('9', I(9)), CARD('-1', I(-1)), CARD('10', I(10)),
+      ]
+    },
+    { timeLimit:85, targetTex:'\\frac{7}{2}', target: F(7,2), hintTex:'3 + \\frac{1}{2} = \\frac{7}{2}',
+      cards: [
+        CARD('\\frac{1}{2}', F(1,2)), CARD('\\frac{3}{2}', F(3,2)), CARD('2', I(2)), CARD('3', I(3)),
+        CARD('4', I(4)), CARD('5', I(5)), CARD('-2', I(-2)), CARD('0.\\dot{3}', F(1,3)),
+        CARD('6', I(6)), CARD('10', I(10)),
+      ]
+    },
+    { timeLimit:100, targetTex:'6', target: I(6), hintTex:'\\sqrt{3} \\times \\sqrt{12} = 6',
+      cards: [
+        CARD('\\sqrt{3}', S(1,3)), CARD('\\sqrt{12}', S(1,12)), CARD('\\sqrt{2}', S(1,2)),
+        CARD('2', I(2)), CARD('3', I(3)), CARD('4', I(4)), CARD('\\frac{1}{2}', F(1,2)),
+        CARD('5', I(5)), CARD('-3', I(-3)), CARD('8', I(8)),
+      ]
+    },
+    { timeLimit:115, targetTex:'4\\sqrt{2}', target: S(4,2), hintTex:'\\sqrt{18} + \\sqrt{2} = 4\\sqrt{2}',
+      cards: [
+        CARD('\\sqrt{2}', S(1,2)), CARD('-\\sqrt{2}', S(-1,2)), CARD('\\sqrt{18}', S(1,18)),
+        CARD('3', I(3)), CARD('-2', I(-2)), CARD('\\frac{1}{2}', F(1,2)), CARD('5', I(5)),
+        CARD('\\sqrt{50}', S(1,50)), CARD('4', I(4)), CARD('7', I(7)),
+      ]
+    },
+    { timeLimit:130, targetTex:'2', target: I(2), hintTex:'(\\sqrt{3}+1)(\\sqrt{3}-1) = 2',
+      cards: [
+        CARD('\\sqrt{3}', S(1,3)), CARD('\\sqrt{3}', S(1,3)), CARD('1', I(1)), CARD('-1', I(-1)),
+        CARD('2', I(2)), CARD('4', I(4)), CARD('\\frac{1}{2}', F(1,2)), CARD('\\sqrt{12}', S(1,12)),
+        CARD('3', I(3)), CARD('\\sqrt{48}', S(1,48)),
+      ]
+    },
+  ];
+
+  /* ============================================================
+     3. STATE
+     ============================================================ */
+  let round = 0;
+  let totalScore = 0;
+  let roundResults = [];
+  let tokens = [];
+  let timeLeft = 0;
+  let timerId = null;
+  let totalAttempts = 0, correctAttempts = 0;
+  let foundSignatures = new Set();
+  let foundListData = [];
+  let varietyScore = 0;
+  let hintUsed = false;
+  let running = false;
+  let roundEndTimerId = null;
+  let autoAdvanceCountdown = 0;
+  let paused = false;
+  let playerName = '';
+
+  const AUTO_ADVANCE_SECONDS = 4;
+
+  const OPS = [
+    {sym:'+', latex:'+'}, {sym:'-', latex:'-'}, {sym:'\\times', latex:'\\times', display:'×'}, {sym:'\\div', latex:'\\div', display:'÷'}
+  ];
+
+  const els = {};
+  ['app','roundVal','scoreVal','timerVal','timerPill','foundVal','targetBox','trayWrap','trayLabel',
+   'trayPlaceholder','btnUndo','btnClear','btnSubmit','btnHint','feedbackMsg','hintBox','numGrid','opRow','brRow',
+   'startOverlay','btnStart','roundEndOverlay','roundEndTitle','reFound','reAcc','reTimeBonus','reRoundScore',
+   'btnNextRound','finalOverlay','finalTotalScore','roundTable','btnRestart','judgeFlash','judgeMark',
+   'foundSidebar','foundList','foundEmpty','autoNote','autoSecs',
+   'btnRules','btnShowRules','rulesOverlay','btnCloseRules','btnEndRound','roundTotal','finalGreeting',
+   'btnBack','btnRanking','rankBoxStart','rankListStart','rankBoxEnd','rankListEnd','greetLine'
+  ].forEach(id=> els[id]=document.getElementById(id));
+
+  els.greetLine.innerHTML = `<b>${HOME_PLAYER_NAME}</b>님, 준비되셨나요?`;
+
+  els.roundTotal.textContent = ROUNDS.length;
+
+  /* ============================================================
+     4. DERIVED STATE FROM TOKENS
+     ============================================================ */
+  function computeDerived(){
+    let stack=[]; let expect='operand'; let used=new Set();
+    for(const tok of tokens){
+      if(tok.type==='num'){ used.add(tok.cardId); expect='operator'; }
+      else if(tok.type==='op'){ expect='operand'; }
+      else if(tok.type==='bracket'){
+        if(tok.kind==='open'){ stack.push(tok.depth); expect='operand'; }
+        else { stack.pop(); expect='operator'; }
+      }
+    }
+    return {stack, expect, used};
+  }
+
+  function parseTokens(toks){
+    let i=0;
+    function parseExpr(){
+      let val = parseTerm();
+      while(i<toks.length && toks[i].type==='op' && (toks[i].sym==='+'||toks[i].sym==='-')){
+        const op=toks[i].sym; i++;
+        const rhs=parseTerm();
+        val = op==='+' ? add(val,rhs) : sub(val,rhs);
+      }
+      return val;
+    }
+    function parseTerm(){
+      let val = parseFactor();
+      while(i<toks.length && toks[i].type==='op' && (toks[i].sym==='\\times'||toks[i].sym==='\\div')){
+        const op=toks[i].sym; i++;
+        const rhs=parseFactor();
+        val = op==='\\times' ? mul(val,rhs) : div(val,rhs);
+      }
+      return val;
+    }
+    function parseFactor(){
+      const tok = toks[i];
+      if(tok.type==='bracket' && tok.kind==='open'){
+        i++; const val=parseExpr(); i++; return val;
+      }
+      i++; return tok.terms;
+    }
+    return parseExpr();
+  }
+
+  function tokensToLatex(toks){
+    return toks.map(t=>{
+      if(t.type==='num') return t.tex;
+      if(t.type==='op') return t.sym==='\\times' ? '\\times ' : t.sym==='\\div' ? '\\div ' : t.sym+' ';
+      if(t.type==='bracket'){
+        if(t.depth===1) return t.kind==='open' ? '(' : ')';
+        if(t.depth===2) return t.kind==='open' ? '\\{' : '\\}';
+        return t.kind==='open' ? '[' : ']';
+      }
+    }).join(' ');
+  }
+
+  function tokenSignature(toks){
+    return toks.map(t=>{
+      if(t.type==='num') return 'N'+t.cardId;
+      if(t.type==='op') return 'O'+t.sym;
+      return 'B'+t.kind+t.depth;
+    }).join('|');
+  }
+
+  /* ============================================================
+     5. RENDERING
+     ============================================================ */
+  function katexInto(el, tex){
+    try{ katex.render(tex, el, {throwOnError:false, displayMode:false}); }
+    catch(e){ el.textContent = tex; }
+  }
+
+  function renderTarget(){
+    const r = ROUNDS[round];
+    katexInto(els.targetBox, r.targetTex);
+  }
+
+  function renderTray(){
+    els.trayWrap.querySelectorAll('.exprTok').forEach(n=>n.remove());
+    if(tokens.length===0){ els.trayPlaceholder.classList.remove('hidden'); return; }
+    els.trayPlaceholder.classList.add('hidden');
+    for(const t of tokens){
+      const span = document.createElement('span');
+      span.className='exprTok';
+      let latex;
+      if(t.type==='num'){ latex=t.tex; }
+      else if(t.type==='op'){ span.classList.add('opTok'); latex = t.sym==='\\times'?'\\times':t.sym==='\\div'?'\\div':t.sym; }
+      else { span.classList.add('brTok'+t.depth);
+        latex = t.depth===1 ? (t.kind==='open'?'(':')') : t.depth===2 ? (t.kind==='open'?'\\{':'\\}') : (t.kind==='open'?'[':']');
+      }
+      katexInto(span, latex);
+      els.trayWrap.appendChild(span);
+    }
+  }
+
+  function renderNumGrid(){
+    els.numGrid.innerHTML='';
+    const r = ROUNDS[round];
+    const derived = computeDerived();
+    for(const card of r.cards){
+      const d = document.createElement('div');
+      d.className='card';
+      katexInto(d, card.tex);
+      const isUsed = derived.used.has(card.id);
+      const enabled = derived.expect==='operand' && !isUsed;
+      if(isUsed) d.classList.add('used');
+      else if(!enabled) d.classList.add('disabled');
+      d.draggable = enabled;
+      if(enabled){
+        d.addEventListener('click', ()=> addToken({type:'num', cardId:card.id, tex:card.tex, terms:card.terms}));
+        d.addEventListener('dragstart', (e)=>{
+          e.dataTransfer.setData('text/plain', JSON.stringify({kind:'num', cardId:card.id}));
+        });
+      }
+      els.numGrid.appendChild(d);
+    }
+  }
+
+  function renderOpRow(){
+    els.opRow.innerHTML='';
+    const derived = computeDerived();
+    const enabled = derived.expect==='operator';
+    for(const op of OPS){
+      const d = document.createElement('div');
+      d.className='opCard'+(enabled?'':' disabled');
+      d.textContent = op.display || op.sym;
+      d.draggable = enabled;
+      if(enabled){
+        d.addEventListener('click', ()=> addToken({type:'op', sym:op.sym}));
+        d.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', JSON.stringify({kind:'op', sym:op.sym})));
+      }
+      els.opRow.appendChild(d);
+    }
+  }
+
+  function renderBrRow(){
+    els.brRow.innerHTML='';
+    const derived = computeDerived();
+    const defs = [
+      {depth:1, openSym:'(', closeSym:')', cls:'d1'},
+      {depth:2, openSym:'{', closeSym:'}', cls:'d2'},
+      {depth:3, openSym:'[', closeSym:']', cls:'d3'},
+    ];
+    for(const def of defs){
+      const openEnabled = derived.expect==='operand' && derived.stack.length===def.depth-1;
+      const closeEnabled = derived.expect==='operator' && derived.stack.length>0 && derived.stack[derived.stack.length-1]===def.depth;
+      const openD = document.createElement('div');
+      openD.className='brCard '+def.cls+(openEnabled?'':' disabled');
+      openD.textContent = def.openSym;
+      openD.draggable = openEnabled;
+      if(openEnabled){
+        openD.addEventListener('click', ()=> addToken({type:'bracket', kind:'open', depth:def.depth}));
+        openD.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', JSON.stringify({kind:'bropen', depth:def.depth})));
+      }
+      const closeD = document.createElement('div');
+      closeD.className='brCard '+def.cls+(closeEnabled?'':' disabled');
+      closeD.textContent = def.closeSym;
+      closeD.draggable = closeEnabled;
+      if(closeEnabled){
+        closeD.addEventListener('click', ()=> addToken({type:'bracket', kind:'close', depth:def.depth}));
+        closeD.addEventListener('dragstart', (e)=> e.dataTransfer.setData('text/plain', JSON.stringify({kind:'brclose', depth:def.depth})));
+      }
+      els.brRow.appendChild(openD);
+      els.brRow.appendChild(closeD);
+    }
+  }
+
+  function renderSubmitState(){
+    const derived = computeDerived();
+    const ready = tokens.length>0 && derived.expect==='operator' && derived.stack.length===0;
+    els.btnSubmit.disabled = !ready || !running;
+    els.btnUndo.disabled = tokens.length===0;
+    els.btnClear.disabled = tokens.length===0;
+  }
+
+  function renderAll(){
+    renderTray();
+    renderNumGrid();
+    renderOpRow();
+    renderBrRow();
+    renderSubmitState();
+  }
+
+  function renderFoundList(){
+    els.foundList.innerHTML='';
+    if(foundListData.length===0){ els.foundEmpty.classList.remove('hidden'); return; }
+    els.foundEmpty.classList.add('hidden');
+    foundListData.forEach((entry, idx)=>{
+      const row = document.createElement('div');
+      row.className='foundItem';
+      const num = document.createElement('span');
+      num.className='num'; num.textContent = (idx+1);
+      const expr = document.createElement('span');
+      expr.className='expr';
+      katexInto(expr, entry.latex + ' = ' + ROUNDS[round].targetTex);
+      row.appendChild(num); row.appendChild(expr);
+      els.foundList.appendChild(row);
+    });
+    els.foundSidebar.scrollTop = els.foundSidebar.scrollHeight;
+  }
+
+  function addToken(tok){
+    if(!running) return;
+    const derived = computeDerived();
+    if(tok.type==='num'){
+      if(derived.expect!=='operand' || derived.used.has(tok.cardId)) return;
+    } else if(tok.type==='op'){
+      if(derived.expect!=='operator') return;
+    } else if(tok.type==='bracket'){
+      if(tok.kind==='open'){
+        if(derived.expect!=='operand' || derived.stack.length!==tok.depth-1) return;
+      } else {
+        if(derived.expect!=='operator' || derived.stack.length===0 || derived.stack[derived.stack.length-1]!==tok.depth) return;
+      }
+    }
+    tokens.push(tok);
+    renderAll();
+  }
+
+  /* drag & drop onto tray */
+  els.trayWrap.addEventListener('dragover', (e)=>{ e.preventDefault(); els.trayWrap.classList.add('dragover'); });
+  els.trayWrap.addEventListener('dragleave', ()=> els.trayWrap.classList.remove('dragover'));
+  els.trayWrap.addEventListener('drop', (e)=>{
+    e.preventDefault();
+    els.trayWrap.classList.remove('dragover');
+    let data;
+    try{ data = JSON.parse(e.dataTransfer.getData('text/plain')); }catch(err){ return; }
+    if(!data) return;
+    const r = ROUNDS[round];
+    if(data.kind==='num'){
+      const card = r.cards.find(c=>c.id===data.cardId);
+      if(card) addToken({type:'num', cardId:card.id, tex:card.tex, terms:card.terms});
+    } else if(data.kind==='op'){
+      addToken({type:'op', sym:data.sym});
+    } else if(data.kind==='bropen'){
+      addToken({type:'bracket', kind:'open', depth:data.depth});
+    } else if(data.kind==='brclose'){
+      addToken({type:'bracket', kind:'close', depth:data.depth});
+    }
+  });
+
+  els.btnUndo.addEventListener('click', ()=>{
+    if(!running) return;
+    tokens.pop();
+    renderAll();
+  });
+  els.btnClear.addEventListener('click', ()=>{
+    if(!running) return;
+    tokens = [];
+    renderAll();
+  });
+
+  /* ============================================================
+     6. FEEDBACK EFFECTS
+     ============================================================ */
+  function popJudgeMark(text, good){
+    els.judgeMark.textContent = text;
+    els.judgeMark.classList.remove('good','bad','go');
+    void els.judgeMark.offsetWidth;
+    els.judgeMark.classList.add(good?'good':'bad','go');
+  }
+  function flashScreen(kind){
+    els.judgeFlash.classList.remove('correct','wrong');
+    void els.judgeFlash.offsetWidth;
+    els.judgeFlash.classList.add(kind);
+  }
+  function shakeScreen(){
+    els.app.classList.remove('shake'); void els.app.offsetWidth; els.app.classList.add('shake');
+  }
+  function burstConfetti(){
+    const colors=['#FFD166','#FF8F6B','#C6A6FF','#8FEAD1','#FFF176'];
+    for(let i=0;i<16;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      const ang=Math.random()*Math.PI*2, dist=70+Math.random()*100;
+      c.style.setProperty('--dx', Math.cos(ang)*dist+'px');
+      c.style.setProperty('--dy', Math.sin(ang)*dist-20+'px');
+      c.style.setProperty('--rot', (Math.random()*360)+'deg');
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      document.body.appendChild(c);
+      requestAnimationFrame(()=> c.classList.add('go'));
+      setTimeout(()=> c.remove(), 950);
+    }
+  }
+  function showMsg(text, cls){
+    els.feedbackMsg.textContent = text;
+    els.feedbackMsg.classList.remove('good','bad');
+    if(cls) els.feedbackMsg.classList.add(cls);
+  }
+
+  /* ============================================================
+     7. SUBMIT / SCORING
+     ============================================================ */
+  els.btnSubmit.addEventListener('click', ()=>{
+    if(!running) return;
+    const derived = computeDerived();
+    if(!(tokens.length>0 && derived.expect==='operator' && derived.stack.length===0)) return;
+
+    totalAttempts++;
+    let result;
+    try{
+      const value = parseTokens(tokens);
+      result = {ok:true, value};
+    }catch(e){
+      result = {ok:false, reason:e.message};
+    }
+
+    if(!result.ok){
+      const msg = result.reason==='div-zero' ? '0으로 나눌 수는 없어요!' : '이 나눗셈은 계산할 수 없어요. 분모를 더 간단히 만들어보세요.';
+      showMsg(msg, 'bad');
+      popJudgeMark('앗!', false);
+      flashScreen('wrong'); shakeScreen();
+      renderSubmitState();
+      return;
+    }
+
+    const target = ROUNDS[round].target;
+    const isCorrect = termsEqual(result.value, target);
+
+    if(isCorrect){
+      correctAttempts++;
+      const sig = tokenSignature(tokens);
+      if(!foundSignatures.has(sig)){
+        foundSignatures.add(sig);
+        foundListData.push({latex: tokensToLatex(tokens)});
+        const gained = 100 + 25*(foundSignatures.size-1);
+        varietyScore += gained;
+        els.foundVal.textContent = foundSignatures.size;
+        showMsg('정답! 새로운 방법이에요 (+'+gained+'점)', 'good');
+        popJudgeMark('정답! 🎉', true);
+        flashScreen('correct'); burstConfetti();
+        renderFoundList();
+      } else {
+        showMsg('정답이지만 이미 찾은 방법이에요. 다른 방법을 찾아볼까요?', 'good');
+        popJudgeMark('정답!', true);
+        flashScreen('correct');
+      }
+      tokens = [];
+      renderAll();
+    } else {
+      showMsg('아직 목표 숫자가 아니에요. 다시 계산해볼까요?', 'bad');
+      popJudgeMark('땡!', false);
+      flashScreen('wrong'); shakeScreen();
+      renderSubmitState();
+    }
+  });
+
+  /* ============================================================
+     8. HINT
+     ============================================================ */
+  els.btnHint.addEventListener('click', ()=>{
+    if(!running || hintUsed) return;
+    hintUsed = true;
+    els.btnHint.disabled = true;
+    totalScore = Math.max(0, totalScore - 30);
+    els.scoreVal.textContent = totalScore;
+    els.hintBox.classList.remove('hidden');
+    els.hintBox.textContent = '';
+    const label = document.createTextNode('예시 풀이 (힌트 사용 -30점): ');
+    els.hintBox.appendChild(label);
+    const span = document.createElement('span');
+    els.hintBox.appendChild(span);
+    katexInto(span, ROUNDS[round].hintTex);
+  });
+
+  /* ============================================================
+     9. TIMER & ROUND FLOW
+     ============================================================ */
+  function tickTimer(){
+    if(paused) return;
+    timeLeft--;
+    els.timerVal.textContent = timeLeft;
+    els.timerPill.classList.toggle('low', timeLeft<=15);
+    if(timeLeft<=0) endRound(true);
+  }
+
+  function startRound(){
+    const r = ROUNDS[round];
+    tokens = [];
+    timeLeft = r.timeLimit;
+    totalAttempts = 0; correctAttempts = 0;
+    foundSignatures = new Set();
+    foundListData = [];
+    varietyScore = 0;
+    hintUsed = false;
+    running = true;
+
+    els.roundVal.textContent = round+1;
+    els.timerVal.textContent = timeLeft;
+    els.timerPill.classList.remove('low');
+    els.foundVal.textContent = 0;
+    els.scoreVal.textContent = totalScore;
+    els.btnHint.disabled = false;
+    els.hintBox.classList.add('hidden');
+    showMsg('', '');
+
+    renderTarget();
+    renderAll();
+    renderFoundList();
+
+    clearInterval(timerId);
+    timerId = setInterval(tickTimer, 1000);
+  }
+
+  function endRound(isTimeout){
+    if(!running) return;
+    running = false;
+    clearInterval(timerId);
+
+    const accuracy = totalAttempts>0 ? Math.round(100*correctAttempts/totalAttempts) : 0;
+    const accuracyBonus = totalAttempts>0 ? accuracy : 0;
+    const timeBonus = Math.round(100 * Math.max(0,timeLeft) / ROUNDS[round].timeLimit);
+    const roundTotal = varietyScore + accuracyBonus + timeBonus;
+    totalScore += roundTotal;
+
+    roundResults.push({ round: round+1, found: foundSignatures.size, accuracy, timeBonus, roundTotal });
+
+    els.scoreVal.textContent = totalScore;
+    els.roundEndTitle.textContent = isTimeout ? '시간 종료!' : '라운드 클리어!';
+    els.reFound.textContent = foundSignatures.size;
+    els.reAcc.textContent = accuracy+'%';
+    els.reTimeBonus.textContent = timeBonus;
+    els.reRoundScore.textContent = roundTotal;
+    els.btnNextRound.textContent = (round<ROUNDS.length-1) ? '다음 라운드' : '결과 보기';
+    els.roundEndOverlay.classList.remove('hidden');
+
+    startAutoAdvanceCountdown();
+  }
+
+  function startAutoAdvanceCountdown(){
+    clearInterval(roundEndTimerId);
+    autoAdvanceCountdown = AUTO_ADVANCE_SECONDS;
+    els.autoSecs.textContent = autoAdvanceCountdown;
+    els.autoNote.classList.remove('hidden');
+    roundEndTimerId = setInterval(()=>{
+      autoAdvanceCountdown--;
+      if(autoAdvanceCountdown<=0){
+        clearInterval(roundEndTimerId);
+        goToNextRound();
+      } else {
+        els.autoSecs.textContent = autoAdvanceCountdown;
+      }
+    }, 1000);
+  }
+
+  function goToNextRound(){
+    clearInterval(roundEndTimerId);
+    els.roundEndOverlay.classList.add('hidden');
+    if(round < ROUNDS.length-1){
+      round++;
+      startRound();
+    } else {
+      showFinal();
+    }
+  }
+
+  els.btnNextRound.addEventListener('click', goToNextRound);
+
+  function showFinal(){
+    els.finalTotalScore.textContent = totalScore;
+    els.finalGreeting.textContent = playerName + '님, 수고하셨어요! 최종 점수는';
+    let html = '<table><tr><td>라운드</td><td>찾은 답</td><td>정확도</td><td>시간 보너스</td><td>점수</td></tr>';
+    for(const r of roundResults){
+      html += `<tr><td>${r.round}</td><td>${r.found}</td><td>${r.accuracy}%</td><td>${r.timeBonus}</td><td>${r.roundTotal}</td></tr>`;
+    }
+    html += '</table>';
+    els.roundTable.innerHTML = html;
+    els.finalOverlay.classList.remove('hidden');
+
+    els.rankListEnd.innerHTML = '<div class="rankLoading">기록 저장 중...</div>';
+    saveScore(GAME_ID, playerName, totalScore, { rounds: roundResults }).finally(()=>{
+      loadRanking(els.rankListEnd, playerName, totalScore);
+    });
+  }
+
+  // ---------- ranking ----------
+  async function loadRanking(listEl, myName, myScore){
+    listEl.innerHTML = '<div class="rankLoading">불러오는 중...</div>';
+    const rows = await fetchTopScores(GAME_ID, 10);
+    renderRankingList(listEl, rows, { highlightName: myName, highlightScore: myScore });
+  }
+
+  els.btnBack.addEventListener('click', ()=>{
+    if(running){
+      if(!confirm('게임을 종료하고 메인 화면으로 돌아갈까요?')) return;
+    }
+    location.href = 'index.html';
+  });
+
+  els.btnRanking.addEventListener('click', ()=>{
+    els.rankBoxStart.classList.toggle('hidden');
+    if(!els.rankBoxStart.classList.contains('hidden')){
+      loadRanking(els.rankListStart, null, null);
+    }
+  });
+
+  els.btnStart.addEventListener('click', ()=>{
+    playerName = HOME_PLAYER_NAME;
+    els.startOverlay.classList.add('hidden');
+    round = 0; totalScore = 0; roundResults = [];
+    startRound();
+  });
+
+  function openRules(){ paused = true; els.rulesOverlay.classList.remove('hidden'); }
+  function closeRules(){ paused = false; els.rulesOverlay.classList.add('hidden'); }
+  els.btnRules.addEventListener('click', openRules);
+  els.btnShowRules.addEventListener('click', openRules);
+  els.btnCloseRules.addEventListener('click', closeRules);
+
+  els.btnEndRound.addEventListener('click', ()=>{
+    if(!running) return;
+    const ok = window.confirm('지금 라운드를 종료할까요? 남은 시간이 많을수록 시간 보너스 점수가 커져요. 종료하면 이번 라운드로 돌아올 수 없어요.');
+    if(ok) endRound(false);
+  });
+
+  els.btnRestart.addEventListener('click', ()=>{
+    els.finalOverlay.classList.add('hidden');
+    round = 0; totalScore = 0; roundResults = [];
+    startRound();
+  });
+
+})();
+</script>
+</body>
+</html>

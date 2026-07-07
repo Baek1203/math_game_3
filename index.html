@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🧠 뇌 풀가동! 수학 놀이터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Baloo+2:wght@500;700;800&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sky-top:#8FD3F0; --sky-bottom:#EAF7FF;
+    --grass:#8FCB6B; --grass-dark:#6EAE4E;
+    --banner:#FFC468; --banner-dark:#F0932B;
+    --ink:#6B4A2C; --ink-soft:#9C8264;
+    --card-bg:#FFFFFF;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; width:100%; height:100%; font-family:'Gowun Dodum', sans-serif; color:var(--ink); }
+  body{
+    display:flex; align-items:center; justify-content:center; min-height:100vh;
+    background:
+      radial-gradient(circle at 18% 15%, rgba(143,211,240,0.35), transparent 55%),
+      radial-gradient(circle at 85% 12%, rgba(255,196,104,0.30), transparent 50%),
+      radial-gradient(circle at 50% 95%, rgba(143,203,107,0.32), transparent 55%),
+      linear-gradient(160deg, #2B2F3A 0%, #1B1E27 100%);
+  }
+  #app{
+    position:relative; width:min(520px, 94vw); max-height:92vh; overflow:auto;
+    border-radius:20px; padding:36px 28px; text-align:center;
+    background:linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 40%, var(--grass) 41%, var(--grass-dark) 100%);
+    box-shadow:0 30px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.5);
+  }
+  h1{ font-family:'Jua',sans-serif; font-size:26px; color:var(--banner-dark); margin:0 0 6px; text-shadow:0 2px 0 #fff; }
+  .sub{ font-size:14px; color:var(--ink-soft); margin-bottom:22px; }
+
+  .screen{ display:none; }
+  .screen.active{ display:block; }
+
+  input#nameInput{
+    width:100%; max-width:300px; padding:14px 16px; border-radius:16px; border:none;
+    font-family:'Gowun Dodum', sans-serif; font-size:16px; text-align:center;
+    box-shadow:0 4px 0 rgba(107,74,44,0.18); outline:none; margin-bottom:16px;
+  }
+  .bigBtn{
+    padding:14px 40px; border:none; border-radius:26px;
+    background:linear-gradient(180deg, #FFD166, var(--banner-dark));
+    color:#fff; font-family:'Jua',sans-serif; font-size:18px; letter-spacing:1px;
+    cursor:pointer; box-shadow:0 6px 0 #C9701A; display:inline-block;
+  }
+  .bigBtn:active{ transform:translateY(3px); box-shadow:0 3px 0 #C9701A; }
+  .bigBtn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  .greet{ font-family:'Jua',sans-serif; font-size:16px; color:var(--ink); margin-bottom:18px; }
+  .greet b{ color:var(--banner-dark); }
+  #changeNameBtn{
+    background:none; border:none; color:var(--ink-soft); text-decoration:underline;
+    font-family:'Gowun Dodum',sans-serif; font-size:12.5px; cursor:pointer; margin-top:4px;
+  }
+
+  .gameGrid{ display:flex; flex-direction:column; gap:16px; margin-top:6px; }
+  .gameCard{
+    background:var(--card-bg); border-radius:18px; padding:18px; text-align:left;
+    box-shadow:0 5px 0 rgba(107,74,44,0.18); display:flex; flex-direction:column; gap:8px;
+  }
+  .gameCard .icon{ font-size:30px; }
+  .gameCard h3{ font-family:'Jua',sans-serif; margin:0; font-size:17px; color:var(--ink); }
+  .gameCard p{ margin:0; font-size:13px; color:var(--ink-soft); line-height:1.5; }
+  .gameCard .row{ display:flex; gap:8px; margin-top:6px; }
+  .playBtn{
+    flex:1; border:none; border-radius:14px; padding:11px; cursor:pointer;
+    font-family:'Jua',sans-serif; font-size:14.5px; color:#fff;
+    background:linear-gradient(180deg, var(--banner) 0%, var(--banner-dark) 100%);
+    box-shadow:0 4px 0 #C9701A;
+  }
+  .playBtn:active{ transform:translateY(2px); box-shadow:0 2px 0 #C9701A; }
+
+  #btnAllRanking{
+    display:block; width:100%; margin-top:18px; padding:12px; border:none; border-radius:16px;
+    cursor:pointer; font-family:'Jua',sans-serif; font-size:14px; color:#fff;
+    background:linear-gradient(180deg, #6EA8DC 0%, #3D7BBF 100%); box-shadow:0 4px 0 #2A5A8C;
+  }
+  #btnAllRanking:active{ transform:translateY(2px); box-shadow:0 2px 0 #2A5A8C; }
+
+  /* ---------- 전체 랭킹 모달 (교사용) ---------- */
+  .modalOverlay{
+    position:fixed; inset:0; z-index:100; background:rgba(0,0,0,0.55);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modalOverlay.hidden{ display:none !important; }
+  .modalPanel{
+    width:min(560px, 100%); max-height:86vh; overflow-y:auto;
+    background:#FFFDF7; border-radius:20px; padding:22px; box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .modalHead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .modalHead h2{ margin:0; font-family:'Jua',sans-serif; font-size:19px; color:var(--banner-dark); }
+  #btnCloseAllRanking{
+    border:none; background:#eee; width:30px; height:30px; border-radius:50%; cursor:pointer;
+    font-size:14px; color:var(--ink);
+  }
+  .rankColumns{ display:flex; flex-direction:column; gap:16px; }
+  @media (min-width:520px){ .rankColumns{ flex-direction:row; } }
+  .rankCol{ flex:1; background:rgba(255,255,255,0.7); border-radius:16px; padding:12px 14px; }
+  .rankCol h4{ margin:0 0 8px; font-family:'Jua',sans-serif; font-size:13.5px; color:var(--ink); text-align:center; }
+  .rankList{ list-style:none; margin:0; padding:0; max-height:280px; overflow-y:auto; text-align:left; }
+  .rankList li{ display:flex; align-items:center; gap:8px; padding:6px 4px; font-size:13.5px; border-bottom:1px solid rgba(107,74,44,0.08); }
+  .rankList .rk{ width:20px; font-family:'Baloo 2',sans-serif; font-weight:700; color:var(--banner-dark); flex-shrink:0; }
+  .rankList .rn{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rankList .rs{ font-family:'Baloo 2',sans-serif; font-weight:700; color:#2E9A7E; flex-shrink:0; }
+  .rankEmpty, .rankLoading{ font-size:12.5px; color:var(--ink-soft); text-align:center; padding:10px 0; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- STEP 1: 이름 입력 -->
+  <div class="screen active" id="nameScreen">
+    <h1>🧠 뇌 풀가동! 수학 놀이터</h1>
+    <div class="sub">이름을 입력하고 게임을 골라보세요!</div>
+    <input type="text" id="nameInput" maxlength="12" placeholder="이름을 입력해주세요">
+    <div><button class="bigBtn" id="btnNext">다음</button></div>
+  </div>
+
+  <!-- STEP 2: 게임 선택 -->
+  <div class="screen" id="selectScreen">
+    <h1>🎮 게임을 선택하세요</h1>
+    <div class="greet" id="greetText"></div>
+
+    <div class="gameGrid">
+      <div class="gameCard">
+        <div class="icon">🔢</div>
+        <h3>이쪽저쪽 : 유리수 무리수</h3>
+        <p>줄지어 오는 수 카드가 무리수인지 유리수인지 빠르게 골라 콤보와 피버타임을 노리는 스피드 게임.</p>
+        <div class="row">
+          <button class="playBtn" onclick="location.href='game1.html'">▶ 플레이</button>
+        </div>
+      </div>
+
+      <div class="gameCard">
+        <div class="icon">🎯</div>
+        <h3>수 카드 미션: 목표를 잡아라!</h3>
+        <p>수 카드와 연산·괄호 카드를 조합해 목표 숫자를 만드는 5라운드 미션 게임.</p>
+        <div class="row">
+          <button class="playBtn" onclick="location.href='game2.html'">▶ 플레이</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="btnAllRanking">📊 전체 랭킹 보기</button>
+    <button id="changeNameBtn">이름 다시 입력하기</button>
+  </div>
+
+</div>
+
+<!-- ALL RANKING MODAL (교사용) -->
+<div class="modalOverlay hidden" id="allRankingModal">
+  <div class="modalPanel">
+    <div class="modalHead">
+      <h2>📊 전체 랭킹</h2>
+      <button id="btnCloseAllRanking">✕</button>
+    </div>
+    <div class="rankColumns">
+      <div class="rankCol">
+        <h4>🔢 이쪽저쪽 : 유리수 무리수</h4>
+        <div id="allRankGame1"><div class="rankLoading">불러오는 중...</div></div>
+      </div>
+      <div class="rankCol">
+        <h4>🎯 수 카드 미션: 목표를 잡아라!</h4>
+        <div id="allRankGame2"><div class="rankLoading">불러오는 중...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="shared.js"></script>
+<script>
+(function(){
+  const nameScreen = document.getElementById('nameScreen');
+  const selectScreen = document.getElementById('selectScreen');
+  const nameInput = document.getElementById('nameInput');
+  const greetText = document.getElementById('greetText');
+
+  function showSelectScreen(){
+    const name = getPlayerName();
+    greetText.innerHTML = `<b>${name}</b>님, 환영합니다! 즐기고 싶은 게임을 골라주세요.`;
+    nameScreen.classList.remove('active');
+    selectScreen.classList.add('active');
+  }
+
+  // 이미 저장된 이름이 있으면 입력창에 미리 채워둔다
+  const existing = getPlayerName();
+  if(existing) nameInput.value = existing;
+
+  document.getElementById('btnNext').addEventListener('click', ()=>{
+    const name = nameInput.value.trim();
+    if(!name){ nameInput.focus(); return; }
+    setPlayerName(name);
+    showSelectScreen();
+  });
+  nameInput.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter') document.getElementById('btnNext').click();
+  });
+
+  document.getElementById('changeNameBtn').addEventListener('click', ()=>{
+    selectScreen.classList.remove('active');
+    nameScreen.classList.add('active');
+    nameInput.focus();
+  });
+
+  // 전체 랭킹 모달 (교사용)
+  const allRankingModal = document.getElementById('allRankingModal');
+  document.getElementById('btnAllRanking').addEventListener('click', ()=>{
+    allRankingModal.classList.remove('hidden');
+    loadAllRankings();
+  });
+  document.getElementById('btnCloseAllRanking').addEventListener('click', ()=>{
+    allRankingModal.classList.add('hidden');
+  });
+  allRankingModal.addEventListener('click', (e)=>{
+    if(e.target === allRankingModal) allRankingModal.classList.add('hidden');
+  });
+
+  async function loadAllRankings(){
+    const g1El = document.getElementById('allRankGame1');
+    const g2El = document.getElementById('allRankGame2');
+    g1El.innerHTML = '<div class="rankLoading">불러오는 중...</div>';
+    g2El.innerHTML = '<div class="rankLoading">불러오는 중...</div>';
+    const [rows1, rows2] = await Promise.all([
+      fetchTopScores('game1', 10),
+      fetchTopScores('game2', 10)
+    ]);
+    renderRankingList(g1El, rows1, {});
+    renderRankingList(g2El, rows2, {});
+  }
+
+  // 이름이 이미 있으면 바로 게임 선택 화면으로
+  if(existing) showSelectScreen();
+})();
+</script>
+</body>
+</html>
