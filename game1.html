@@ -474,6 +474,7 @@
   const FEVER_DURATION = 10000;    // fever always lasts exactly 10s
   const FEVER_COOLDOWN_COMBO = 10; // extra correct-combo needed after a fever ends before the next can trigger
   const QUEUE_SIZE = 6;
+  const WRONG_LOCK_MS = 450; // brief input lock after a wrong answer so mistakes don't chain
 
   const els = {
     app:document.getElementById('app'),
@@ -508,6 +509,7 @@
 
   let state = {};
   function resetState(){
+    clearTimeout(state.lockTimeoutId);
     state = {
       running:false,
       score:0, combo:0, maxCombo:0,
@@ -517,6 +519,7 @@
       feverBaseline:0, // combo value the NEXT fever trigger is measured from
       feverTimeoutId:null, gameIntervalId:null,
       queue:[], lastKey:null,
+      locked:false, lockTimeoutId:null, // brief input-lock after a wrong answer
     };
   }
 
@@ -784,6 +787,7 @@
 
   function handleAnswer(choice){
     if(!state.running) return;
+    if(state.locked) return;
     if(!state.queue.length) return;
 
     const front = state.queue[state.queue.length-1];
@@ -803,6 +807,8 @@
       sndCorrect();
       flashBtn(choice==='irr'?els.btnIrr:els.btnRat);
       triggerCorrectEffect(state.combo);
+      updateHud();
+      advanceLane(choice);
     } else {
       const lostCombo = state.combo;
       state.combo = 0;
@@ -810,9 +816,18 @@
       sndWrong();
       flashBtn(choice==='irr'?els.btnIrr:els.btnRat);
       triggerWrongEffect(lostCombo);
+      updateHud();
+
+      // brief freeze: block further input and hold the missed card in place
+      // for a beat before the lane moves on, so mistakes can't chain instantly
+      state.locked = true;
+      clearTimeout(state.lockTimeoutId);
+      state.lockTimeoutId = setTimeout(()=>{
+        state.locked = false;
+        if(state.running) advanceLane(choice);
+      }, WRONG_LOCK_MS);
     }
-    updateHud();
-    advanceLane(choice);
+  }
   }
 
   // ---------- game loop ----------
@@ -838,6 +853,7 @@
     state.running = false;
     clearInterval(state.gameIntervalId);
     clearTimeout(state.feverTimeoutId);
+    clearTimeout(state.lockTimeoutId);
     els.app.classList.remove('fever');
     els.finalScore.textContent = state.score;
     els.finalCombo.textContent = state.maxCombo;
