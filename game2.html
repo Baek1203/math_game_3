@@ -62,7 +62,7 @@
   @media (min-width:860px) and (min-height:640px){
     body{ padding:28px; }
     #app{
-      width:min(940px, 94vw); height:min(860px, 92vh);
+      width:min(760px, 94vw); height:min(860px, 92vh);
       border-radius:20px;
       box-shadow:0 30px 70px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.5);
       padding-top:36px;
@@ -142,8 +142,14 @@
   }
   .pill .n{ font-family:'Baloo 2', sans-serif; font-size:16px; font-weight:700; color:var(--banner-dark); }
   .pill.timer .n{ font-size:17px; }
-  .pill.timer.low .n{ color:var(--bad); animation:beat 0.6s infinite; }
-  @keyframes beat{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.18);} }
+  .pill.timer.low{ animation: timerRing 0.5s infinite; }
+  .pill.timer.low .n{ color:var(--bad); animation:beat 0.5s infinite; }
+  @keyframes beat{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.55);} }
+  @keyframes timerRing{
+    0%{ box-shadow:0 4px 0 rgba(107,74,44,0.18), 0 0 0 0 rgba(229,72,77,0.55); background:var(--white); }
+    60%{ box-shadow:0 4px 0 rgba(107,74,44,0.18), 0 0 0 11px rgba(229,72,77,0); background:#FFE3E3; }
+    100%{ box-shadow:0 4px 0 rgba(107,74,44,0.18), 0 0 0 0 rgba(229,72,77,0); background:var(--white); }
+  }
 
   #targetPanel{
     position:relative; z-index:2; margin:8px 14px 0; padding:10px 14px 12px;
@@ -198,23 +204,25 @@
   .paletteSection{ }
   .paletteHead{ font-family:'Jua',sans-serif; font-size:12.5px; color:var(--ink-soft); margin:0 2px 5px; display:flex; align-items:center; gap:6px; }
   .paletteHead .hintText{ font-size:10.5px; color:var(--ink-soft); font-family:'Gowun Dodum',sans-serif; }
-  #numGrid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; justify-items:center; }
-  @media (min-width:860px) and (min-height:640px){ #numGrid{ grid-template-columns:repeat(6, 1fr); } }
-  @media (max-width:360px){ #numGrid{ grid-template-columns:repeat(4,1fr); } }
+  #numGrid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; justify-items:center; }
   .card{
-    width:100%; max-width:58px; aspect-ratio:1/0.82; border-radius:11px; background:var(--white);
+    width:100%; max-width:72px; aspect-ratio:1/0.92; border-radius:14px; background:var(--white);
     display:flex; align-items:center; justify-content:center; text-align:center;
-    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; color:var(--ink);
-    box-shadow:0 3px 0 rgba(107,74,44,0.22), 0 2px 6px rgba(0,0,0,0.10);
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:20px; color:var(--ink);
+    box-shadow:0 4px 0 rgba(107,74,44,0.22), 0 2px 6px rgba(0,0,0,0.10);
     cursor:pointer; transition:transform .12s ease, opacity .12s ease, filter .12s ease; padding:2px;
   }
-  .card .katex{ font-size:1.02em; }
+  .card .katex{ font-size:1.14em; }
   .card:active{ transform:translateY(2px); }
   .card.used, .card.disabled{ opacity:0.32; filter:grayscale(0.5); cursor:default; box-shadow:0 2px 0 rgba(107,74,44,0.15); }
   .card.used:active, .card.disabled:active{ transform:none; }
 
-  #opBrRow{ display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
-  #opRow, #brRow{ display:contents; }
+  #opBrRow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  #opRow{ display:flex; gap:7px; flex-wrap:wrap; }
+  #brRow{
+    display:flex; gap:7px; flex-wrap:wrap; align-items:center;
+    padding-left:14px; border-left:2px dashed rgba(107,74,44,0.28);
+  }
   .opCard{
     width:48px; height:42px; border-radius:12px; background:linear-gradient(180deg, var(--op) 0%, var(--op-dark) 100%);
     color:#fff; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:20px;
@@ -381,7 +389,7 @@
       <div id="hud">
         <div class="pill">🚩 라운드 <span class="n" id="roundVal">1</span>/<span id="roundTotal">5</span></div>
         <div class="pill">⭐ <span class="n" id="scoreVal">0</span></div>
-        <div class="pill timer" id="timerPill">⏰ <span class="n" id="timerVal">90</span>초</div>
+        <div class="pill timer" id="timerPill">⏰ <span class="n" id="timerVal">30</span>초</div>
         <div class="pill">🎯 찾은 답 <span class="n" id="foundVal">0</span></div>
         <button class="pill" id="btnRules">❓ 규칙</button>
       </div>
@@ -620,34 +628,34 @@
   function CARD(tex, terms){ uidCounter++; return {id:'c'+uidCounter, tex, terms}; }
 
   const ROUNDS = [
-    { timeLimit:70, targetTex:'24', target: I(24), hintTex:'4 \\times 6 = 24',
+    { timeLimit:30, targetTex:'24', target: I(24), hintTex:'4 \\times 6 = 24',
       cards: [
         CARD('2', I(2)), CARD('3', I(3)), CARD('4', I(4)), CARD('5', I(5)), CARD('6', I(6)),
         CARD('7', I(7)), CARD('8', I(8)), CARD('9', I(9)), CARD('-1', I(-1)), CARD('10', I(10)),
       ]
     },
-    { timeLimit:85, targetTex:'\\frac{7}{2}', target: F(7,2), hintTex:'3 + \\frac{1}{2} = \\frac{7}{2}',
+    { timeLimit:35, targetTex:'\\frac{7}{2}', target: F(7,2), hintTex:'3 + \\frac{1}{2} = \\frac{7}{2}',
       cards: [
         CARD('\\frac{1}{2}', F(1,2)), CARD('\\frac{3}{2}', F(3,2)), CARD('2', I(2)), CARD('3', I(3)),
         CARD('4', I(4)), CARD('5', I(5)), CARD('-2', I(-2)), CARD('0.\\dot{3}', F(1,3)),
         CARD('6', I(6)), CARD('10', I(10)),
       ]
     },
-    { timeLimit:100, targetTex:'6', target: I(6), hintTex:'\\sqrt{3} \\times \\sqrt{12} = 6',
+    { timeLimit:40, targetTex:'6', target: I(6), hintTex:'\\sqrt{3} \\times \\sqrt{12} = 6',
       cards: [
         CARD('\\sqrt{3}', S(1,3)), CARD('\\sqrt{12}', S(1,12)), CARD('\\sqrt{2}', S(1,2)),
         CARD('2', I(2)), CARD('3', I(3)), CARD('4', I(4)), CARD('\\frac{1}{2}', F(1,2)),
         CARD('5', I(5)), CARD('-3', I(-3)), CARD('8', I(8)),
       ]
     },
-    { timeLimit:115, targetTex:'4\\sqrt{2}', target: S(4,2), hintTex:'\\sqrt{18} + \\sqrt{2} = 4\\sqrt{2}',
+    { timeLimit:50, targetTex:'4\\sqrt{2}', target: S(4,2), hintTex:'\\sqrt{18} + \\sqrt{2} = 4\\sqrt{2}',
       cards: [
         CARD('\\sqrt{2}', S(1,2)), CARD('-\\sqrt{2}', S(-1,2)), CARD('\\sqrt{18}', S(1,18)),
         CARD('3', I(3)), CARD('-2', I(-2)), CARD('\\frac{1}{2}', F(1,2)), CARD('5', I(5)),
         CARD('\\sqrt{50}', S(1,50)), CARD('4', I(4)), CARD('7', I(7)),
       ]
     },
-    { timeLimit:130, targetTex:'2', target: I(2), hintTex:'(\\sqrt{3}+1)(\\sqrt{3}-1) = 2',
+    { timeLimit:60, targetTex:'2', target: I(2), hintTex:'(\\sqrt{3}+1)(\\sqrt{3}-1) = 2',
       cards: [
         CARD('\\sqrt{3}', S(1,3)), CARD('\\sqrt{3}', S(1,3)), CARD('1', I(1)), CARD('-1', I(-1)),
         CARD('2', I(2)), CARD('4', I(4)), CARD('\\frac{1}{2}', F(1,2)), CARD('\\sqrt{12}', S(1,12)),
@@ -1070,7 +1078,7 @@
     if(paused) return;
     timeLeft--;
     els.timerVal.textContent = timeLeft;
-    els.timerPill.classList.toggle('low', timeLeft<=15);
+    els.timerPill.classList.toggle('low', timeLeft<=10);
     if(timeLeft<=0) endRound(true);
   }
 
