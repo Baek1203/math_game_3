@@ -22,7 +22,7 @@ const firebaseConfig = {
 /* Firestore 데이터베이스 ID.
    (default) 가 아닌 이름 있는 데이터베이스를 만들었다면 그 ID를 여기 적어주세요.
    기본 (default) 데이터베이스를 쓴다면 '(default)' 그대로 두면 됩니다. */
-const FIRESTORE_DATABASE_ID = "math-game-1";
+const FIRESTORE_DATABASE_ID = "(default)";
 
 let _fbReady = false;
 let db = null;
