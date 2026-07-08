@@ -198,35 +198,36 @@
   .paletteSection{ }
   .paletteHead{ font-family:'Jua',sans-serif; font-size:12.5px; color:var(--ink-soft); margin:0 2px 5px; display:flex; align-items:center; gap:6px; }
   .paletteHead .hintText{ font-size:10.5px; color:var(--ink-soft); font-family:'Gowun Dodum',sans-serif; }
-  #numGrid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
-  @media (min-width:860px) and (min-height:640px){ #numGrid{ grid-template-columns:repeat(5, 1fr); } }
-  @media (max-width:360px){ #numGrid{ grid-template-columns:repeat(3,1fr); } }
+  #numGrid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; justify-items:center; }
+  @media (min-width:860px) and (min-height:640px){ #numGrid{ grid-template-columns:repeat(6, 1fr); } }
+  @media (max-width:360px){ #numGrid{ grid-template-columns:repeat(4,1fr); } }
   .card{
-    aspect-ratio:1/1; border-radius:13px; background:var(--white);
+    width:100%; max-width:58px; aspect-ratio:1/0.82; border-radius:11px; background:var(--white);
     display:flex; align-items:center; justify-content:center; text-align:center;
-    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:22px; color:var(--ink);
-    box-shadow:0 4px 0 rgba(107,74,44,0.22), 0 2px 6px rgba(0,0,0,0.10);
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:16px; color:var(--ink);
+    box-shadow:0 3px 0 rgba(107,74,44,0.22), 0 2px 6px rgba(0,0,0,0.10);
     cursor:pointer; transition:transform .12s ease, opacity .12s ease, filter .12s ease; padding:2px;
   }
-  .card .katex{ font-size:1.18em; }
+  .card .katex{ font-size:1.02em; }
   .card:active{ transform:translateY(2px); }
   .card.used, .card.disabled{ opacity:0.32; filter:grayscale(0.5); cursor:default; box-shadow:0 2px 0 rgba(107,74,44,0.15); }
   .card.used:active, .card.disabled:active{ transform:none; }
 
-  #opRow, #brRow{ display:flex; gap:9px; flex-wrap:wrap; }
+  #opBrRow{ display:flex; gap:7px; flex-wrap:wrap; align-items:center; }
+  #opRow, #brRow{ display:contents; }
   .opCard{
-    width:66px; height:56px; border-radius:14px; background:linear-gradient(180deg, var(--op) 0%, var(--op-dark) 100%);
-    color:#fff; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:28px;
+    width:48px; height:42px; border-radius:12px; background:linear-gradient(180deg, var(--op) 0%, var(--op-dark) 100%);
+    color:#fff; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:20px;
     display:flex; align-items:center; justify-content:center;
-    box-shadow:0 4px 0 #B84B39; cursor:pointer;
+    box-shadow:0 3px 0 #B84B39; cursor:pointer;
   }
   .opCard:active{ transform:translateY(2px); box-shadow:0 2px 0 #B84B39; }
   .opCard.disabled{ opacity:0.35; cursor:default; filter:grayscale(0.4); }
   .opCard.disabled:active{ transform:none; }
 
   .brCard{
-    min-width:58px; height:56px; padding:0 16px; border-radius:14px; color:#fff;
-    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:26px;
+    min-width:42px; height:42px; padding:0 11px; border-radius:12px; color:#fff;
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size:19px;
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
   }
@@ -413,13 +414,11 @@
         </div>
 
         <div class="paletteSection">
-          <div class="paletteHead">➕ 사칙연산 카드</div>
-          <div id="opRow"></div>
-        </div>
-
-        <div class="paletteSection">
-          <div class="paletteHead">( 괄호 카드 <span class="hintText">— ( ) → { } → [ ] 순서로 안쪽부터 사용해요</span></div>
-          <div id="brRow"></div>
+          <div class="paletteHead">➕ 연산 · 괄호 카드 <span class="hintText">— ( ) → { } → [ ] 순서로 안쪽부터 사용해요</span></div>
+          <div id="opBrRow">
+            <div id="opRow"></div>
+            <div id="brRow"></div>
+          </div>
         </div>
       </div>
     </div>
